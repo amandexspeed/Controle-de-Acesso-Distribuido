@@ -1,15 +1,18 @@
 package com.example;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Properties;
 
 public class GistClient {
 
     // 🔴 CONFIGURAÇÃO: Coloque seus dados aqui
     private static final String GIST_ID = "d247e3ae7e5ffb875a38019c13efef53"; 
-    private static final String TOKEN = System.getenv("GITHUB_TOKEN");
+    private static final String TOKEN = carregarToken();
     private static final String FILE_NAME = "dados.txt"; // Mesmo nome que criou no site
 
     private static final HttpClient client = HttpClient.newHttpClient();
@@ -70,4 +73,32 @@ public class GistClient {
             throw new RuntimeException("Falha ao escrever: " + response.body());
         }
     }
+
+    private static String carregarToken() {
+            // 1. Tentativa Prioritária: Arquivo config.properties (Sidecar)
+            // Isso permite que você entregue o JAR + o arquivo para o professor
+            try (FileInputStream input = new FileInputStream("config.properties")) {
+                Properties prop = new Properties();
+                prop.load(input);
+                String tokenArquivo = prop.getProperty("github.token");
+                if (tokenArquivo != null && !tokenArquivo.isEmpty()) {
+                    System.out.println("🔒 Configuração carregada do arquivo config.properties");
+                    return tokenArquivo;
+                }
+            } catch (IOException ex) {
+                // Arquivo não encontrado, tudo bem. Vamos tentar o próximo método.
+                System.out.println("⚠️ Arquivo config.properties não encontrado. Tentando variáveis de ambiente...");
+            }
+
+            // 2. Tentativa Secundária: Variável de Ambiente (Padrão 12-Factor App)
+            String envToken = System.getenv("GITHUB_TOKEN");
+            if (envToken != null && !envToken.isEmpty()) {
+                return envToken;
+            }
+
+            // Se chegou aqui, não tem token. É melhor falhar agora do que depois.
+            throw new RuntimeException("❌ ERRO FATAL: Token do GitHub não encontrado!\n" +
+                    "Crie um arquivo 'config.properties' com 'github.token=SEU_TOKEN' na mesma pasta do JAR.");
+        }
+
 }
