@@ -9,7 +9,7 @@ public class GistClient {
 
     // 🔴 CONFIGURAÇÃO: Coloque seus dados aqui
     private static final String GIST_ID = "d247e3ae7e5ffb875a38019c13efef53"; 
-    private static final String TOKEN = "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"; 
+    private static final String TOKEN = System.getenv("GITHUB_TOKEN");
     private static final String FILE_NAME = "dados.txt"; // Mesmo nome que criou no site
 
     private static final HttpClient client = HttpClient.newHttpClient();
